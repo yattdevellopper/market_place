@@ -1,0 +1,57 @@
+# render.yaml
+
+databases:
+  - name: mon_marketplace_db_prod_render # Nom de votre ressource de base de données sur Render
+    databaseName: mon_marketplace_db      # Le nom de la base de données dans PostgreSQL pour Django
+    user: mon_marketplace_user            # L'utilisateur de la base de données pour Django
+
+services:
+  - type: web
+    name: mon-marketplace-django          # Le nom de votre service web sur Render
+    env: python                           # Le type d'environnement
+    buildCommand: "./build.sh"            # Commande pour construire l'application
+    startCommand: "gunicorn marketplace_project.wsgi:application --bind 0.0.0.0:$PORT" # Commande pour démarrer l'application
+    envVars:
+      # Variables d'environnement pour la base de données (Render les injecte automatiquement depuis la DB créée)
+      - key: DATABASE_URL               # URL de connexion complète de la BDD (Django peut l'utiliser directement si configuré)
+        fromDatabase: mon_marketplace_db_prod_render
+      - key: DB_NAME                    # Nom de la BDD pour Django settings
+        fromDatabase: mon_marketplace_db_prod_render
+        property: database
+      - key: DB_USER                    # Utilisateur de la BDD pour Django settings
+        fromDatabase: mon_marketplace_db_prod_render
+        property: user
+      - key: DB_PASSWORD                # Mot de passe de la BDD pour Django settings
+        fromDatabase: mon_marketplace_db_prod_render
+        property: password
+      - key: DB_HOST                    # Hôte de la BDD pour Django settings
+        fromDatabase: mon_marketplace_db_prod_render
+        property: host
+      - key: DB_PORT                    # Port de la BDD pour Django settings
+        fromDatabase: mon_marketplace_db_prod_render
+        property: port
+      # Variables d'environnement spécifiques à l'application Django
+      - key: SECRET_KEY                 # Clé secrète de Django (Render peut la générer)
+        generateValue: true
+      - key: DEBUG_VALUE                # Mettez à "False" en production
+        value: "False"
+      - key: ALLOWED_HOSTS              # Vos domaines autorisés (Render ajoutera son propre domaine)
+        value: "yourdomain.com,mon-marketplace-django.onrender.com" # Remplacez "yourdomain.com" par votre vrai domaine si vous en avez un. Render vous donnera son domaine automatiquement (mon-marketplace-django.onrender.com)
+      - key: PAYSTACK_PUBLIC_KEY        # Clé publique Paystack
+        sync: false # Render ne la génère pas, vous la fournirez manuellement
+      - key: PAYSTACK_SECRET_KEY        # Clé secrète Paystack
+        sync: false # Render ne la génère pas, vous la fournirez manuellement
+      # Si vous utilisez AWS S3 pour les médias
+      # - key: AWS_ACCESS_KEY_ID
+      #   sync: false
+      # - key: AWS_SECRET_ACCESS_KEY
+      #   sync: false
+      # - key: AWS_STORAGE_BUCKET_NAME
+      #   sync: false
+      # - key: AWS_S3_REGION_NAME
+      #   sync: false
+    autoDeploy: true # Déploiement automatique à chaque push sur la branche 'main'
+    # Health check pour Render (vérifie si l'app est en ligne)
+    # healthCheckPath: /health/ # Créez une simple vue Django pour cela (ex: HttpResponse("OK"))
+    # numInstances: 1 # Nombre d'instances de votre service (1 pour commencer)
+    # plan: free # ou starter, standard (payant)
