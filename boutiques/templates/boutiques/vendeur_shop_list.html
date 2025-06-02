@@ -1,0 +1,40 @@
+{% extends 'boutiques/vendeur_dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Mes Boutiques - Tableau de Bord Vendeur{% endblock %}
+
+{% block dashboard_content %}
+    <h1 class="mt-4">Ma Boutiques</h1>
+
+    {% if shops %}
+        <div class="list-group shadow-sm bg-white rounded">
+            {% for shop in shops %}
+                <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+                    <div class="d-flex align-items-center">
+                        {% if shop.logo %}
+                            <img src="{{ shop.logo.url }}" alt="{{ shop.name }} logo" class="me-3 rounded" style="width: 60px; height: 60px; object-fit: contain;">
+                        {% else %}
+                            <img src="{% static 'images/shop_placeholder.png' %}" alt="Logo par défaut" class="me-3 rounded" style="width: 60px; height: 60px; object-fit: contain;">
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-0">{{ shop.name }}</h5>
+                            <small class="text-muted">{{ shop.description|truncatechars:70 }}</small>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'edit_shop' shop.slug %}" class="btn btn-sm btn-info me-2" title="Modifier la boutique">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'delete_shop' shop.slug %}" class="btn btn-sm btn-danger" title="Supprimer la boutique">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-3" role="alert">
+            Vous n'avez pas encore de boutiques.
+        </div>
+    {% endif %}
+{% endblock %}

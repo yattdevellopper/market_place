@@ -1,0 +1,44 @@
+{% extends 'boutiques/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="card-title mb-0">Mon Profil Utilisateur</h1>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success mt-3">Mettre à jour le profil</button>
+                    </form>
+                </div>
+                <div class="card-footer text-muted">
+                    <p>Membre depuis : {{ user_profile.user.date_joined|date:"d M Y" }}</p>
+                    {% if user_profile.is_seller %}
+                        <p class="mb-0">Statut : <span class="badge bg-success">Vendeur Actif</span></p>
+                        <a href="{% url 'seller_dashboard_home' %}" class="btn btn-info btn-sm mt-2">Accéder au Tableau de Bord Vendeur</a>
+                    {% else %}
+                        <p class="mb-0">Statut : <span class="badge bg-secondary">Client</span></p>
+                    {% endif %}
+                    <a href="{% url 'password_change' %}" class="btn btn-warning btn-sm mt-2">Changer le mot de passe</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

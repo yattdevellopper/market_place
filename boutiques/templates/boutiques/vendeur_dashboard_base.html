@@ -1,0 +1,30 @@
+{% extends 'boutiques/base.html' %}
+
+{% block title %}Tableau de Bord Vendeur{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group shadow-sm mb-4">
+                <a href="{% url 'seller_dashboard_home' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'seller_dashboard_home' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt me-2"></i> Tableau de bord
+                </a>
+                <a href="{% url 'seller_shop_list' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'seller_shop_list' %}active{% endif %}">
+                    <i class="fas fa-store me-2"></i> Mes Boutiques
+                </a>
+                <a href="{% url 'seller_products_list' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'seller_products_list' or request.resolver_match.url_name == 'add_product' or request.resolver_match.url_name == 'edit_product' %}active{% endif %}">
+                    <i class="fas fa-box-open me-2"></i> Mes Produits
+                </a>
+                 <a href="{% url 'seller_orders_list' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'seller_orders_list' or request.resolver_match.url_name == 'seller_order_detail' %}active{% endif %}">
+                    <i class="fas fa-receipt me-2"></i> Mes Commandes
+                </a>
+                {# Ajoutez d'autres liens spécifiques au vendeur ici #}
+            </div>
+        </div>
+        <div class="col-md-9">
+            {% block dashboard_content %}
+            {# Le contenu spécifique de chaque page du tableau de bord viendra ici #}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}

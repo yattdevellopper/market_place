@@ -1,0 +1,32 @@
+{% extends 'boutiques/base.html' %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm mt-5">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Connexion</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+                    </form>
+                    <hr>
+                    <p class="text-center">Pas encore de compte ? <a href="{% url 'register' %}">Inscrivez-vous ici</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

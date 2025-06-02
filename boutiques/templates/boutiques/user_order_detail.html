@@ -1,0 +1,85 @@
+{# templates/boutiques/user_order_detail.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Détail de la Commande #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Détail de la Commande #{{ order.id }}</h1>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            Commande #{{ order.id }}
+            <span class="badge bg-{{ order.get_status_badge_color }}">{{ order.get_status_display }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5>Informations de Commande</h5>
+                    <p><strong>Date de commande:</strong> {{ order.created_at|date:"d M Y H:i" }}</p>
+                    <p><strong>Prix Total:</strong> {{ order.total_price|floatformat:2 }} F CFA</p>
+                    <p><strong>Statut:</strong> {{ order.get_status_display }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Adresse de Livraison</h5>
+                    <p>{{ order.shipping_address_line1 }}</p>
+                    {% if order.shipping_address_line2 %}<p>{{ order.shipping_address_line2 }}</p>{% endif %}
+                    <p>{{ order.shipping_city }}, {{ order.shipping_postal_code }}</p>
+                    <p>{{ order.shipping_country }}</p>
+                </div>
+            </div>
+
+            {% if order.tracking_number %}
+            <hr>
+            <div class="mb-3">
+                <h5>Suivi de la Livraison</h5>
+                <p><strong>Numéro de Suivi:</strong> {{ order.tracking_number }}</p>
+                <p><strong>Transporteur:</strong> {{ order.shipping_provider|default:"Non spécifié" }}</p>
+                {# Vous pouvez ajouter un lien vers le site du transporteur ici si vous le stockez dans le modèle #}
+                {% if order.shipping_provider and order.tracking_number %}
+                    {# Exemple pour un lien générique, adaptez selon le transporteur #}
+                    <a href="https://www.google.com/search?q={{ order.shipping_provider }}+tracking+{{ order.tracking_number }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                        Suivre votre colis <i class="bi bi-box-seam"></i>
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <hr>
+            <h5>Articles de la Commande</h5>
+            <ul class="list-group mb-3">
+                {% for item in order.items.all %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="my-0">{{ item.product_name }}</h6>
+                            <small class="text-muted">{{ item.quantity }} x {{ item.price_at_purchase|floatformat:2 }} F CFA</small>
+                        </div>
+                        <span class="text-muted">{{ item.subtotal|floatformat:2 }} F CFA</span>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            {% if order.status == 'shipped' %}
+                <hr>
+                <div class="alert alert-info text-center" role="alert">
+                    Votre commande a été expédiée. Si vous l'avez reçue, veuillez confirmer la livraison.
+                    <form action="{% url 'confirm_order_delivery' order.id %}" method="post" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Confirmer la réception de la commande</button>
+                    </form>
+                </div>
+            {% elif order.status == 'delivered' %}
+                <div class="alert alert-success text-center" role="alert">
+                    Commande marquée comme livrée. Merci !
+                </div>
+            {% endif %}
+
+            <a href="{% url 'user_orders_list' %}" class="btn btn-secondary mt-3">Retour à mes commandes</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

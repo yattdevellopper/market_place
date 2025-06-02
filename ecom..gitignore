@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+build/
+dist/
+develop-eggs/
+*.egg-info
+.tox/
+.env/  # Votre environnement virtuel si nommé .env
+venv/  # Votre environnement virtuel si nommé venv
+env/   # Votre environnement virtuel si nommé env
+
+# Django
+db.sqlite3 # Votre base de données SQLite de développement
+/media/    # Dossier où les fichiers uploadés par les utilisateurs sont stockés
+/static_root/ # Dossier de collecte des fichiers statiques en production (si utilisé)
+*.log
+*.pot
+
+# IDEs et éditeurs
+.idea/          # Dossiers de PyCharm
+.vscode/        # Dossiers de VS Code
+*.sublime-project
+*.sublime-workspace
+
+# Fichiers sensibles et locaux
+# Ces fichiers NE DOIVENT JAMAIS être poussés sur GitHub !
+marketplace_project/settings_local.py # Si vous utilisez un fichier settings local séparé
+# Ou si vous avez des variables d'environnement dans settings.py directement :
+# Ces lignes ne sont pas nécessaires si vous utilisez os.environ.get(), mais c'est un rappel.
+# N'incluez PAS vos clés API, clés secrètes, ou identifiants de base de données directement ici.
+# Gérez-les avec des variables d'environnement comme expliqué précédemment.
+
+# Fichiers de Paystack/Paiement (si des logs ou fichiers temporaires sont générés)
+paystack_logs/

@@ -1,0 +1,88 @@
+{# templates/boutiques/checkout.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Finaliser la Commande{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Finaliser la Commande</h1>
+
+    {% if errors %}
+        <div class="alert alert-warning" role="alert">
+            <p>Certains problèmes ont été détectés avec votre panier :</p>
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <p>Veuillez vérifier votre panier avant de continuer.</p>
+            <a href="{% url 'cart_detail' %}" class="btn btn-sm btn-warning">Retour au Panier</a>
+        </div>
+    {% endif %}
+
+    {% if not cart_items %}
+        <div class="alert alert-info" role="alert">
+            Votre panier est vide après vérification. <a href="{% url 'product_list' %}" class="alert-link">Continuez vos achats.</a>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Adresse de Livraison</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            {% for field in shipping_form %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                            <button type="submit" class="btn btn-success btn-lg w-100 mt-3">Confirmer la Commande</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">Récapitulatif de la Commande</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group mb-3">
+                            {% for item in cart_items %}
+                                <li class="list-group-item d-flex justify-content-between lh-sm">
+                                    <div>
+                                        <h6 class="my-0">{{ item.product.name }}</h6>
+                                        <small class="text-muted">{{ item.quantity }} x {{ item.price|floatformat:2 }} F CFA</small>
+                                    </div>
+                                    <span class="text-muted">{{ item.total|floatformat:2 }} F CFA</span>
+                                </li>
+                            {% endfor %}
+                            <li class="list-group-item d-flex justify-content-between bg-light">
+                                <div class="text-success">
+                                    <h6 class="my-0">Total Commande</h6>
+                                </div>
+                                <span class="text-success"><strong>{{ total_cart_price|floatformat:2 }} F CFA</strong></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

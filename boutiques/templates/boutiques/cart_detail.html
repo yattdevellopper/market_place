@@ -1,0 +1,74 @@
+{# templates/boutiques/cart_detail.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %} {# Pour la mise en forme des nombres si besoin, ajoutez 'django.contrib.humanize' à INSTALLED_APPS #}
+
+{% block title %}Votre Panier{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Votre Panier</h1>
+
+    {% if cart_items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Produit</th>
+                        <th scope="col">Prix Unitaire</th>
+                        <th scope="col">Quantité</th>
+                        <th scope="col">Total Article</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if item.main_image_url %}
+                                        <img src="{{ item.main_image_url }}" alt="{{ item.name }}" class="img-thumbnail me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="{% static 'images/placeholder.png' %}" alt="No image" class="img-thumbnail me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                                    {% endif %}
+                                    <a href="{% url 'product_detail' item.product.slug %}">{{ item.name }}</a>
+                                </div>
+                            </td>
+                            <td>{{ item.price|floatformat:2 }} F CFA</td>
+                            <td>
+                                <form action="{% url 'update_cart_quantity' item.product.id %}" method="post" class="d-flex align-items-center">
+                                    {% csrf_token %}
+                                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" class="form-control form-control-sm text-center" style="width: 70px;">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary ms-2" title="Mettre à jour">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td>{{ item.total|floatformat:2 }} F CFA</td>
+                            <td>
+                                <form action="{% url 'remove_from_cart' item.product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Retirer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-4">
+            <h3>Total du Panier : <span class="text-primary">{{ total_price|floatformat:2 }} F CFA</span></h3>
+            <a href="{% url 'checkout' %}" class="btn btn-success btn-lg mt-3">Passer la Commande</a>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            Votre panier est vide. <a href="{% url 'product_list' %}" class="alert-link">Commencez vos achats ici !</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

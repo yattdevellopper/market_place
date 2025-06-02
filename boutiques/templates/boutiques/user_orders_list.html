@@ -1,0 +1,48 @@
+{# templates/boutiques/user_orders_list.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Mes Commandes{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Mes Commandes</h1>
+
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">ID Commande</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Statut</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.created_at|date:"d M Y H:i" }}</td>
+                            <td>{{ order.total_price|floatformat:2 }} F CFA</td>
+                            <td><span class="badge bg-{{ order.get_status_badge_color }}">{{ order.get_status_display }}</span></td>
+                            <td>
+                                <a href="{% url 'user_order_detail' order.id %}" class="btn btn-info btn-sm">Voir Détail</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            Vous n'avez pas encore passé de commande.
+            <a href="{% url 'product_list' %}" class="alert-link">Commencez vos achats !</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

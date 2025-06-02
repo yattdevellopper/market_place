@@ -1,0 +1,13 @@
+{# templates/boutiques/messages.html #}
+{# This template displays Django messages (success, error, info, warning) #}
+
+{% if messages %}
+    <div class="container mt-3"> {# Add a container for better spacing and alignment #}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

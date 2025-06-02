@@ -1,0 +1,112 @@
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% block title %}Accueil - Mon Marketplace{% endblock %}
+
+{% block content %}
+    {# Hero Section (Jumbotron stylisé) #}
+    <div class="hero-section text-center text-white p-5 rounded mb-5 shadow-lg"
+         style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('{% static 'images/hero_background.jpg' %}') no-repeat center center / cover;">
+        <h1 class="display-3 fw-bold animate__animated animate__fadeInDown">Bienvenue sur votre Marketplace Unique !</h1>
+        <p class="lead animate__animated animate__fadeInUp mt-3">Découvrez une sélection exclusive de produits faits avec passion et lancez votre propre aventure de vente.</p>
+        <hr class="my-4 border-white animate__animated animate__fadeIn">
+        <p class="fs-5 animate__animated animate__fadeInUp">Prêt à faire partie de l'aventure ?</p>
+
+        {% if not user.shops.exists %}
+        <a class="btn btn-light btn-lg rounded-pill px-4 py-2 animate__animated animate__zoomIn" href="{% url 'create_shop' %}" role="button">
+            <i class="fas fa-store me-2"></i> Créez votre boutique maintenant !
+        </a>
+        {% else %}
+            <p class="mt-4 text-muted animate__animated animate__fadeIn">Vous avez déjà une boutique. Visitez votre <a href="{% url 'seller_dashboard_home' %}" class="text-warning fw-bold">Tableau de bord Vendeur</a> pour la gérer.</p>
+        {% endif %}
+    </div>
+
+    {# Séparateur visuel #}
+    <div class="divider my-5"></div>
+
+    <h2 class="text-center mb-4 section-title">🚀 Nouveautés à Découvrir</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
+        {% for product in latest_products %} {# Utilisation de latest_products pour correspondre à home_view #}
+            <div class="col">
+                <div class="card h-100 shadow-hover border-0 rounded-4 overflow-hidden">
+                    {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}" class="card-img-top img-fluid" alt="{{ product.name }}" style="height: 220px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/placeholder.png' %}" class="card-img-top img-fluid" alt="Image par défaut" style="height: 220px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-truncate mb-1"><a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark fw-bold">{{ product.name }}</a></h5>
+                        <p class="card-text text-muted small mb-2">De <a href="{% url 'shop_detail' product.shop.slug %}" class="text-decoration-none text-info">{{ product.shop.name }}</a></p>
+                        <p class="card-text fw-bold fs-5 mt-auto">{{ product.price }} FCFA</p>
+                    </div>
+                    <div class="card-footer bg-light border-0">
+                        <small class="text-muted">Ajouté le {{ product.created_at|date:"d M Y" }}</small>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12"><p class="text-center text-muted fs-5">Aucun produit n'a encore été ajouté. Restez à l'écoute !</p></div>
+        {% endfor %}
+    </div>
+
+    {# Séparateur visuel #}
+    <div class="divider my-5"></div>
+
+    <h2 class="text-center mb-4 section-title">🌟 Nos Boutiques en Vedette</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
+        {% for shop in active_shops %}
+            <div class="col">
+                <div class="card h-100 shadow-hover border-0 rounded-4 overflow-hidden text-center">
+                    {% if shop.logo %}
+                        <img src="{{ shop.logo.url }}" class="card-img-top mx-auto mt-3 rounded-circle" alt="{{ shop.name }} logo" style="height: 120px; width: 120px; object-fit: cover; border: 3px solid var(--bs-primary);">
+                    {% else %}
+                        <img src="{% static 'images/shop_placeholder.png' %}" class="card-img-top mx-auto mt-3 rounded-circle" alt="Logo de boutique par défaut" style="height: 120px; width: 120px; object-fit: cover; border: 3px solid var(--bs-primary);">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-1"><a href="{% url 'shop_detail' shop.slug %}" class="text-decoration-none text-dark fw-bold">{{ shop.name }}</a></h5>
+                        <p class="card-text text-muted small flex-grow-1">{{ shop.description|truncatechars:70 }}</p>
+                        {% if shop.product_count %}
+                            <span class="badge bg-primary text-white mt-2">{{ shop.product_count }} produit{{ shop.product_count|pluralize }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-light border-0">
+                        <a href="{% url 'shop_detail' shop.slug %}" class="btn btn-outline-primary btn-sm rounded-pill">Visiter la boutique</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12"><p class="text-center text-muted fs-5">Aucune boutique n'est encore active. Soyez le premier !</p></div>
+        {% endfor %}
+    </div>
+
+    {# Séparateur visuel #}
+    <div class="divider my-5"></div>
+
+    <h2 class="text-center mb-4 section-title">🏷️ Parcourir toutes nos Catégories</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-5">
+        {% for category in categories %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 category-card text-center">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                        {# Vous pourriez ajouter une icône spécifique pour chaque catégorie ici si vous en avez #}
+                        <i class="fas fa-tags fa-3x text-primary mb-3"></i> {# Icône générique #}
+                        <h5 class="card-title mb-0"><a href="{% url 'category_detail' category.slug %}" class="text-decoration-none text-dark fw-bold">{{ category.name }}</a></h5>
+                        {% if category.product_count %}
+                            <small class="text-muted mt-1">({{ category.product_count }} produit{{ category.product_count|pluralize }})</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12"><p class="text-center text-muted fs-5">Aucune catégorie disponible pour le moment.</p></div>
+        {% endfor %}
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+<script>
+    new WOW().init();
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}

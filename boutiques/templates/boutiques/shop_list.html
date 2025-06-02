@@ -1,0 +1,40 @@
+{% extends 'boutiques/base.html' %}
+{% load static %}
+
+{% block title %}Toutes les Boutiques - Mon Marketplace{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">Toutes les Boutiques</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form action="{% url 'shop_list' %}" method="get" class="d-flex">
+                <input type="text" class="form-control me-2" name="q" value="{{ current_query }}" placeholder="Rechercher par nom de boutique...">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                {% if current_query %}
+                    <a href="{% url 'shop_list' %}" class="btn btn-outline-secondary ms-2">Réinitialiser</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for shop in shops %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    {% if shop.logo %}
+                        <img src="{{ shop.logo.url }}" class="card-img-top" alt="{{ shop.name }} logo" style="height: 150px; object-fit: contain; padding: 10px;">
+                    {% else %}
+                        <img src="{% static 'images/shop_placeholder.png' %}" class="card-img-top" alt="Logo de boutique par défaut" style="height: 150px; object-fit: contain; padding: 10px;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title text-center"><a href="{% url 'shop_detail' shop.slug %}" class="text-decoration-none text-dark stretched-link">{{ shop.name }}</a></h5>
+                        <p class="card-text text-center text-muted">{{ shop.description|truncatechars:50 }}</p>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12"><p class="text-center alert alert-info">Aucune boutique ne correspond à votre recherche.</p></div>
+        {% endfor %}
+    </div>
+{% endblock %}

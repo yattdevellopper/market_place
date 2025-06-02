@@ -1,0 +1,91 @@
+{# templates/boutiques/vendeur_dashboard_home.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Tableau de Bord Vendeur{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Tableau de Bord Vendeur</h1>
+    <p class="lead">Bienvenue, {{ request.user.username }} ! Gérez vos boutiques et vos produits ici.</p>
+
+    <div class="row mt-4">
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-primary h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-shop me-2"></i>Mes Boutiques</h5>
+                    <p class="card-text fs-2">{{ shop_count }}</p>
+                    <a href="{% url 'seller_shop_list' %}" class="btn btn-outline-light">Voir mes boutiques</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-info h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-box me-2"></i>Mes Produits</h5>
+                    <p class="card-text fs-2">{{ product_count }}</p>
+                    <a href="{% url 'seller_products_list' %}" class="btn btn-outline-light">Gérer mes produits</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-success h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-truck me-2"></i>Commandes Reçues</h5>
+                    <p class="card-text fs-2">{{ order_count }}</p>
+                    <a href="{% url 'seller_orders_list' %}" class="btn btn-outline-light">Voir les commandes</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-warning h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-currency-dollar me-2"></i>Revenu Mensuel</h5>
+                    <p class="card-text fs-2">{{ monthly_revenue|floatformat:2 }} F CFA</p>
+                    <span class="text-white-50">*(Estimé, à compléter)*</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <h2>Actions Rapides</h2>
+        <div class="list-group">
+            <a href="{% url 'create_shop' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-plus-circle me-2"></i> Créer une nouvelle boutique (si vous n'en avez pas)
+            </a>
+            {% if shop_count > 0 %}
+                <a href="{% url 'add_product' shop_slug=request.user.shop.slug %}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-tags me-2"></i> Ajouter un nouveau produit
+                </a>
+            {% endif %}
+            <a href="{% url 'seller_orders_list' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-bell me-2"></i> Vérifier les nouvelles commandes
+            </a>
+            <a href="{% url 'user_profile' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-person-gear me-2"></i> Gérer mon profil vendeur
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        {# Ajoutez d'autres cartes de statistiques ici, par exemple le total des ventes, les avis récents, etc. #}

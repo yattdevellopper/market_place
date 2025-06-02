@@ -1,0 +1,28 @@
+{% extends 'boutiques/vendeur_dashboard_base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if shop %}Modifier Boutique{% else %}Créer Boutique{% endif %}
+{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">{% if shop %}Modifier la boutique "{{ shop.name }}"{% else %}Créer une nouvelle boutique{% endif %}</h1>
+
+    <form method="post" enctype="multipart/form-data" class="shadow-sm p-4 bg-white rounded">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">{% if shop %}Mettre à jour{% else %}Créer la boutique{% endif %}</button>
+        <a href="{% url 'seller_dashboard_home' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+{% endblock %}

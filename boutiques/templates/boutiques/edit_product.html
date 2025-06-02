@@ -1,0 +1,193 @@
+{# templates/boutiques/edit_product.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+
+{% block title %}Modifier le Produit : {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Modifier le Produit : {{ product.name }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informations sur le Produit</h5>
+            </div>
+            <div class="card-body">
+                {% for field in product_form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text text-muted">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Images du Produit</h5>
+            </div>
+            <div class="card-body">
+                {{ image_formset.management_form }}
+                <div class="row">
+                    {% for form in image_formset %}
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between">
+                                {% if form.instance.image %}
+                                    <img src="{{ form.instance.image.url }}" alt="Image" class="img-fluid mb-2 rounded" style="max-height: 150px; object-fit: contain;">
+                                    <p class="text-muted small">Image actuelle</p>
+                                    <form action="{% url 'delete_product_image' form.instance.pk %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette image?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100 mt-2">
+                                            Supprimer l'image
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <p class="text-muted">Nouvelle image</p>
+                                    <div class="mb-2">
+                                        {{ form.image.label_tag }}
+                                        {{ form.image }}
+                                        {% for error in form.image.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if form.instance.pk %} {# Si c'est une instance existante sans image, proposer de la supprimer quand même #}
+                                        <div class="form-check mt-2">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Supprimer cette entrée</label>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                {{ form.id }} {# Garder le champ id pour les instances existantes #}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <p class="text-muted mt-2">Ajoutez jusqu'à {{ image_formset.max_num }} images.</p>
+                {# Add a new empty form for new images #}
+                {% if image_formset.empty_form %}
+                    <div class="p-3 border rounded mb-2 bg-light">
+                        <p class="fw-bold">Ajouter une nouvelle image :</p>
+                        <div class="mb-2">
+                            {{ image_formset.empty_form.image.label_tag }}
+                            {{ image_formset.empty_form.image }}
+                            {% for error in image_formset.empty_form.image.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {{ image_formset.empty_form.id }}
+                        {{ image_formset.empty_form.DELETE }}
+                        <input type="hidden" name="{{ image_formset.empty_form.prefix }}-TOTAL_FORMS" value="{{ image_formset.total_form_count }}">
+                        <input type="hidden" name="{{ image_formset.empty_form.prefix }}-INITIAL_FORMS" value="{{ image_formset.initial_form_count }}">
+                        <input type="hidden" name="{{ image_formset.empty_form.prefix }}-MIN_NUM_FORMS" value="{{ image_formset.min_num }}">
+                        <input type="hidden" name="{{ image_formset.empty_form.prefix }}-MAX_NUM_FORMS" value="{{ image_formset.max_num }}">
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Vidéos du Produit</h5>
+            </div>
+            <div class="card-body">
+                {{ video_formset.management_form }}
+                <div class="row">
+                    {% for form in video_formset %}
+                        <div class="col-md-6 mb-3">
+                            <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between">
+                                {% if form.instance.youtube_url %}
+                                    <div class="ratio ratio-16x9 mb-2">
+                                        <iframe src="https://www.youtube.com/embed/{{ form.instance.youtube_id }}" frameborder="0" allowfullscreen></iframe>
+                                    </div>
+                                    <p class="text-muted small">Vidéo YouTube actuelle : <a href="{{ form.instance.youtube_url }}" target="_blank">{{ form.instance.youtube_url }}</a></p>
+                                {% elif form.instance.video_file %}
+                                    <video controls class="img-fluid mb-2 rounded" style="max-height: 150px; object-fit: contain;">
+                                        <source src="{{ form.instance.video_file.url }}" type="video/mp4">
+                                        Votre navigateur ne supporte pas la balise vidéo.
+                                    </video>
+                                    <p class="text-muted small">Fichier vidéo actuel</p>
+                                {% else %}
+                                    <p class="text-muted">Nouvelle vidéo</p>
+                                {% endif %}
+
+                                <div class="mb-2 mt-2">
+                                    {{ form.youtube_url.label_tag }}
+                                    {{ form.youtube_url }}
+                                    {% for error in form.youtube_url.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mb-2">
+                                    {{ form.video_file.label_tag }}
+                                    {{ form.video_file }}
+                                    {% for error in form.video_file.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                {% if form.instance.pk %}
+                                    <form action="{% url 'delete_product_video' form.instance.pk %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette vidéo?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100 mt-2">
+                                            Supprimer la vidéo
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    {% if form.DELETE %}
+                                        <div class="form-check mt-2">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Supprimer cette entrée</label>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                {{ form.id }} {# Garder le champ id pour les instances existantes #}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <p class="text-muted mt-2">Ajoutez jusqu'à {{ video_formset.max_num }} vidéos.</p>
+                {# Add a new empty form for new videos #}
+                {% if video_formset.empty_form %}
+                    <div class="p-3 border rounded mb-2 bg-light">
+                        <p class="fw-bold">Ajouter une nouvelle vidéo :</p>
+                        <div class="mb-2">
+                            {{ video_formset.empty_form.youtube_url.label_tag }}
+                            {{ video_formset.empty_form.youtube_url }}
+                            {% for error in video_formset.empty_form.youtube_url.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-2">
+                            {{ video_formset.empty_form.video_file.label_tag }}
+                            {{ video_formset.empty_form.video_file }}
+                            {% for error in video_formset.empty_form.video_file.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {{ video_formset.empty_form.id }}
+                        {{ video_formset.empty_form.DELETE }}
+                        <input type="hidden" name="{{ video_formset.empty_form.prefix }}-TOTAL_FORMS" value="{{ video_formset.total_form_count }}">
+                        <input type="hidden" name="{{ video_formset.empty_form.prefix }}-INITIAL_FORMS" value="{{ video_formset.initial_form_count }}">
+                        <input type="hidden" name="{{ video_formset.empty_form.prefix }}-MIN_NUM_FORMS" value="{{ video_formset.min_num }}">
+                        <input type="hidden" name="{{ video_formset.empty_form.prefix }}-MAX_NUM_FORMS" value="{{ video_formset.max_num }}">
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg">Enregistrer les Modifications</button>
+        <a href="{% url 'seller_products_list' %}" class="btn btn-secondary btn-lg">Annuler</a>
+    </form>
+</div>
+{% endblock %}

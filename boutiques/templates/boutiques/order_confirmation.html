@@ -1,0 +1,39 @@
+{# templates/boutiques/order_confirmation.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Confirmation de Commande{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <div class="card shadow-sm p-4 text-center">
+        <div class="card-body">
+            <h1 class="card-title text-success mb-4"><i class="bi bi-check-circle-fill me-2"></i>Commande Confirmée !</h1>
+            <p class="lead">Merci pour votre achat. Votre commande #<strong>{{ order.id }}</strong> a été passée avec succès.</p>
+            <p>Vous recevrez un e-mail de confirmation avec les détails de votre commande.</p>
+            <hr>
+            <h5 class="mb-3">Détails de la Commande :</h5>
+            <ul class="list-group list-group-flush mb-4 mx-auto" style="max-width: 500px;">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Statut actuel:
+                    <span class="badge bg-info text-dark">{{ order.get_status_display }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Montant total:
+                    <strong>{{ order.total_price|floatformat:2 }} F CFA</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Date de commande:
+                    {{ order.created_at|date:"d M Y H:i" }}
+                </li>
+            </ul>
+
+            <a href="{% url 'user_orders_list' %}" class="btn btn-primary me-2">Voir mes commandes</a>
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">Continuer mes achats</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

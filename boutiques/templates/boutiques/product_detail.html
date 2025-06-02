@@ -1,0 +1,145 @@
+{% extends 'boutiques/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Mon Marketplace{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            {% if product.main_image %}
+                <img src="{{ product.main_image.url }}" class="img-fluid rounded shadow-sm mb-3" alt="{{ product.name }}">
+            {% else %}
+                <img src="{% static 'images/placeholder.png' %}" class="img-fluid rounded shadow-sm mb-3" alt="Image par défaut">
+            {% endif %}
+
+            {% if product.images.all %}
+                <div class="d-flex overflow-auto mb-3">
+                    {% for img in product.images.all %}
+                        <img src="{{ img.image.url }}" class="img-thumbnail me-2" style="width: 100px; height: 100px; object-fit: cover;" alt="{{ img.alt_text }}">
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if product.videos.all %}
+                <h4 class="mt-4">Vidéos du Produit</h4>
+                {% for video in product.videos.all %}
+                    <div class="mb-3">
+                        {% if video.video_file %}
+                            <video width="100%" controls class="rounded shadow-sm">
+                                <source src="{{ video.video_file.url }}" type="video/mp4">
+                                Votre navigateur ne supporte pas la balise vidéo.
+                            </video>
+                        {% elif video.video_url %}
+                            {% if "youtube.com" in video.video_url or "youtu.be" in video.video_url %}
+                                {% with video_id=video.video_url|cut:"watch?v="|cut:"youtu.be/" %}
+                                <div class="ratio ratio-16x9">
+                                    <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen class="rounded shadow-sm"></iframe>
+                                </div>
+                                {% endwith %}
+                            {% else %}
+                                <p>Vidéo externe: <a href="{{ video.video_url }}" target="_blank">{{ video.video_url }}</a></p>
+                            {% endif %}
+                        {% endif %}
+                        {% if video.caption %}<p class="text-muted text-center mt-1">{{ video.caption }}</p>{% endif %}
+                    </div>
+                {% empty %}
+                    <p>Aucune vidéo disponible pour ce produit.</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+            <p class="lead fw-bold text-primary">{{ product.price }} FCFA</p>
+            <p class="text-muted">Vendu par : <a href="{% url 'shop_detail' product.shop.slug %}" class="text-decoration-none">{{ product.shop.name }}</a></p>
+            <p>Catégorie : <a href="{% url 'category_detail' product.category.slug %}" class="text-decoration-none">{{ product.category.name }}</a></p>
+            <hr>
+            <h4>Description</h4>
+            <p>{{ product.description|linebreaksbr }}</p>
+            <hr>
+            <p>Stock disponible : <span class="fw-bold {% if product.stock == 0 %}text-danger{% elif product.stock < 10 %}text-warning{% else %}text-success{% endif %}">{{ product.stock }}</span> unités</p>
+            {% if product.stock > 0 %}
+                <form action="{% url 'add_to_cart' product.slug %}" method="post" class="d-flex align-items-center mt-3">
+                    {% csrf_token %}
+                    <label for="quantity-{{ product.id }}" class="form-label me-2 mb-0">Quantité:</label>
+                    <input type="number" id="quantity-{{ product.id }}" name="quantity" value="1" min="1" max="{{ product.stock }}" class="form-control me-3" style="width: 80px;">
+                    <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-shopping-cart me-2"></i> Ajouter au panier</button>
+                </form>
+            {% else %}
+                <button class="btn btn-danger btn-lg" disabled><i class="fas fa-times-circle me-2"></i> Rupture de stock</button>
+            {% endif %}
+            <hr>
+            <div class="mt-5">
+                <h2>Avis des clients</h2>
+                {% if average_rating %}
+                    <p class="lead">Note moyenne :
+                        <span class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= average_rating|floatformat:0 %}⭐{% else %}<span class="text-muted">☆</span>{% endif %}
+                            {% endfor %}
+                        </span>
+                        ({{ average_rating|floatformat:1 }}/5) basé sur {{ reviews.count }} avis.
+                    </p>
+                {% else %}
+                    <p class="lead">Aucun avis pour le moment.</p>
+                {% endif %}
+
+                {% if user.is_authenticated and not user_has_reviewed %}
+                    <div class="card p-4 mb-4 shadow-sm">
+                        <h4>Laisser un avis</h4>
+                        <form action="{% url 'submit_review' product.slug %}" method="post">
+                            {% csrf_token %}
+                            {{ review_form.as_p }} {# Affiche les champs du formulaire #}
+                            <button type="submit" class="btn btn-primary mt-3">Soumettre votre avis</button>
+                        </form>
+                    </div>
+                {% elif user.is_authenticated and user_has_reviewed %}
+                    <div class="alert alert-info" role="alert">
+                        Vous avez déjà laissé un avis pour ce produit.
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        <a href="{% url 'login' %}?next={{ request.path }}">Connectez-vous</a> pour laisser un avis.
+                    </div>
+                {% endif %}
+
+                <div class="reviews-list mt-4">
+                    {% for review in reviews %}
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title mb-1">
+                                    {{ review.user.username }}
+                                    <span class="float-end text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}⭐{% else %}<span class="text-muted">☆</span>{% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </h5>
+                                <p class="card-subtitle text-muted mb-2">
+                                    Le {{ review.created_at|date:"d M Y" }}
+                                </p>
+                                <p class="card-text">{{ review.comment|linebreaksbr }}</p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>Soyez le premier à laisser un avis pour ce produit !</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <hr>
+            <small class="text-muted">Ajouté le {{ product.created_at|date:"d M Y" }} | Dernière mise à jour : {{ product.updated_at|date:"d M Y" }}</small>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Simple JS pour le découpage des URLs YouTube si nécessaire (plus robuste en Python)
+    String.prototype.cut = function(substring) {
+        let index = this.indexOf(substring);
+        if (index === -1) {
+            return this.toString();
+        }
+        return this.substring(index + substring.length);
+    };
+</script>
+{% endblock %}

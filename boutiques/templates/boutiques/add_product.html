@@ -1,0 +1,109 @@
+{# templates/boutiques/add_product.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+
+{% block title %}Ajouter un Nouveau Produit{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Ajouter un Nouveau Produit à {{ shop.name }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informations sur le Produit</h5>
+            </div>
+            <div class="card-body">
+                {% for field in product_form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text text-muted">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Images du Produit</h5>
+            </div>
+            <div class="card-body">
+                {{ image_formset.management_form }}
+                {% for form in image_formset %}
+                    <div class="mb-3 p-3 border rounded mb-2">
+                        {% for field in form %}
+                            {% if field.name == 'image' %}
+                                <div class="mb-2">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {# Gérer le champ DELETE si vous l'ajoutez pour les formulaires vides #}
+                                {% if field.name == 'DELETE' %}
+                                    <div class="form-check">
+                                        {{ field }}
+                                        <label class="form-check-label" for="{{ field.id_for_label }}">Supprimer</label>
+                                    </div>
+                                {% else %}
+                                    {{ field.as_hidden }} {# Masquer les autres champs comme ID #}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                <p class="text-muted mt-2">Ajoutez jusqu'à {{ image_formset.max_num }} images.</p>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Vidéos du Produit</h5>
+            </div>
+            <div class="card-body">
+                {{ video_formset.management_form }}
+                {% for form in video_formset %}
+                    <div class="mb-3 p-3 border rounded mb-2">
+                        {% for field in form %}
+                            {% if field.name == 'video_file' or field.name == 'youtube_url' %}
+                                <div class="mb-2">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {% if field.name == 'DELETE' %}
+                                    <div class="form-check">
+                                        {{ field }}
+                                        <label class="form-check-label" for="{{ field.id_for_label }}">Supprimer</label>
+                                    </div>
+                                {% else %}
+                                    {{ field.as_hidden }}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                <p class="text-muted mt-2">Ajoutez jusqu'à {{ video_formset.max_num }} vidéos.</p>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg">Ajouter le Produit</button>
+        <a href="{% url 'seller_products_list' %}" class="btn btn-secondary btn-lg">Annuler</a>
+    </form>
+</div>
+{% endblock %}

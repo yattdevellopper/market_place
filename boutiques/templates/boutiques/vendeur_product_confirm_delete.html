@@ -1,0 +1,16 @@
+{% extends 'boutiques/vendeur_dashboard_base.html' %}
+
+{% block title %}Supprimer Produit{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">Confirmer la suppression du produit</h1>
+    <div class="alert alert-warning" role="alert">
+        Êtes-vous sûr de vouloir supprimer le produit "<strong>{{ product.name }}</strong>" de votre boutique "<strong>{{ shop.name }}</strong>" ?
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Oui, Supprimer</button>
+        <a href="{% url 'seller_product_list' shop.slug %}" class="btn btn-secondary">Annuler</a>
+    </form>
+{% endblock %}

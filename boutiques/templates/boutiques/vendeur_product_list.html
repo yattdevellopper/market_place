@@ -1,0 +1,65 @@
+{% extends 'boutiques/vendeur_dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Mes Produits - {{ shop.name }}{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">Mes Produits pour {{ shop.name }}</h1>
+    <a href="{% url 'seller_product_create' shop.slug %}" class="btn btn-success mb-3">
+        <i class="fas fa-plus me-2"></i> Ajouter un nouveau produit
+    </a>
+
+    {% if products %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover shadow-sm bg-white rounded">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Nom du Produit</th>
+                        <th>Catégorie</th>
+                        <th>Prix</th>
+                        <th>Stock</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>
+                                {% if product.main_image %}
+                                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                {% else %}
+                                    <img src="{% static 'images/placeholder.png' %}" alt="Image par défaut" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                {% endif %}
+                            </td>
+                            <td><a href="{% url 'product_detail' product.slug %}" class="text-decoration-none">{{ product.name }}</a></td>
+                            <td>{{ product.category.name|default:"Non catégorisé" }}</td>
+                            <td>{{ product.price }} FCFA</td>
+                            <td>{{ product.stock }}</td>
+                            <td>
+                                {% if product.is_available %}
+                                    <span class="badge bg-success">Disponible</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Indisponible</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'seller_product_update' shop.slug product.slug %}" class="btn btn-sm btn-info me-1" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'seller_product_delete' shop.slug product.slug %}" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            Vous n'avez pas encore ajouté de produits pour cette boutique.
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends 'boutiques/vendeur_dashboard_base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if is_new_product %}Ajouter un Produit{% else %}Modifier le Produit{% endif %}
+{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">{% if is_new_product %}Ajouter un nouveau produit pour {{ shop.name }}{% else %}Modifier le produit "{{ product.name }}"{% endif %}</h1>
+
+    <form method="post" enctype="multipart/form-data" class="shadow-sm p-4 bg-white rounded">
+        {% csrf_token %}
+
+        <fieldset class="mb-4 p-3 border rounded">
+            <legend class="float-none w-auto px-2 fs-5">Informations Générales du Produit</legend>
+            {% for field in product_form %}
+                <div class="mb-3">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </fieldset>
+
+        <fieldset class="mb-4 p-3 border rounded">
+            <legend class="float-none w-auto px-2 fs-5">Images du Produit</legend>
+            {{ image_formset.management_form }}
+            <div id="image-formset-container">
+                {% for form in image_formset %}
+                    <div class="mb-3 p-3 border rounded bg-light position-relative image-form">
+                        {% if not forloop.first %}
+                            <button type="button" class="btn-close remove-form position-absolute top-0 end-0 m-2" aria-label="Close"></button>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.image.label_tag }}
+                                {{ form.image }}
+                                {% if form.instance.image.url %}
+                                    <p class="mt-2">Image actuelle: <br><img src="{{ form.instance.image.url }}" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;"></p>
+                                {% endif %}
+                                {% for error in form.image.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.alt_text.label_tag }}
+                                {{ form.alt_text }}
+                                {% for error in form.alt_text.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                {{ form.order.label_tag }}
+                                {{ form.order }}
+                                {% for error in form.order.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        {% if form.instance.pk %}
+                            <div class="form-check mt-2">
+                                {{ form.DELETE }}
+                                <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Supprimer cette image</label>
+                            </div>
+                        {% endif %}
+                        {% for hidden_field in form.hidden_fields %}
+                            {{ hidden_field }}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-secondary mt-3" id="add-image-form"><i class="fas fa-plus-circle me-2"></i> Ajouter une autre image</button>
+        </fieldset>
+
+        <fieldset class="mb-4 p-3 border rounded">
+            <legend class="float-none w-auto px-2 fs-5">Vidéos du Produit</legend>
+            {{ video_formset.management_form }}
+            <div id="video-formset-container">
+                {% for form in video_formset %}
+                    <div class="mb-3 p-3 border rounded bg-light position-relative video-form">
+                        {% if not forloop.first %}
+                            <button type="button" class="btn-close remove-form position-absolute top-0 end-0 m-2" aria-label="Close"></button>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.video_file.label_tag }}
+                                {{ form.video_file }}
+                                {% if form.instance.video_file.url %}
+                                    <p class="mt-2">Vidéo actuelle: <a href="{{ form.instance.video_file.url }}" target="_blank">Voir la vidéo</a></p>
+                                {% endif %}
+                                {% for error in form.video_file.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.video_url.label_tag }}
+                                {{ form.video_url }}
+                                {% for error in form.video_url.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                {{ form.caption.label_tag }}
+                                {{ form.caption }}
+                                {% for error in form.caption.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                {{ form.order.label_tag }}
+                                {{ form.order }}
+                                {% for error in form.order.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        {% if form.instance.pk %}
+                            <div class="form-check mt-2">
+                                {{ form.DELETE }}
+                                <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Supprimer cette vidéo</label>
+                            </div>
+                        {% endif %}
+                        {% for hidden_field in form.hidden_fields %}
+                            {{ hidden_field }}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-secondary mt-3" id="add-video-form"><i class="fas fa-plus-circle me-2"></i> Ajouter une autre vidéo</button>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary btn-lg mt-3">{% if is_new_product %}Ajouter le Produit{% else %}Mettre à jour le Produit{% endif %}</button>
+        <a href="{% url 'seller_product_list' shop.slug %}" class="btn btn-secondary btn-lg mt-3">Annuler</a>
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Fonction pour ajouter un nouveau formulaire d'image
+        document.getElementById('add-image-form').addEventListener('click', function() {
+            var container = document.getElementById('image-formset-container');
+            var totalForms = document.querySelector('#id_images-TOTAL_FORMS');
+            var currentForms = parseInt(totalForms.value);
+
+            var newForm = container.children[0].cloneNode(true);
+            newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, currentForms);
+            newForm.querySelectorAll('input').forEach(input => input.value = ''); // Clear inputs
+            newForm.querySelectorAll('img').forEach(img => img.remove()); // Remove image preview
+            newForm.querySelector('.form-check')?.remove(); // Remove delete checkbox
+            newForm.querySelector('.remove-form').style.display = 'block'; // Show close button for new forms
+
+            container.appendChild(newForm);
+            totalForms.value = currentForms + 1;
+            addRemoveFormListener(newForm); // Add listener for the new form's remove button
+        });
+
+        // Fonction pour ajouter un nouveau formulaire de vidéo
+        document.getElementById('add-video-form').addEventListener('click', function() {
+            var container = document.getElementById('video-formset-container');
+            var totalForms = document.querySelector('#id_videos-TOTAL_FORMS');
+            var currentForms = parseInt(totalForms.value);
+
+            var newForm = container.children[0].cloneNode(true);
+            newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, currentForms);
+            newForm.querySelectorAll('input').forEach(input => input.value = ''); // Clear inputs
+            newForm.querySelectorAll('p').forEach(p => { if (p.textContent.includes('Vidéo actuelle')) p.remove(); }); // Remove video link preview
+            newForm.querySelector('.form-check')?.remove(); // Remove delete checkbox
+            newForm.querySelector('.remove-form').style.display = 'block'; // Show close button for new forms
+
+            container.appendChild(newForm);
+            totalForms.value = currentForms + 1;
+            addRemoveFormListener(newForm); // Add listener for the new form's remove button
+        });
+
+        // Fonction pour ajouter l'écouteur d'événements pour le bouton de suppression de formulaire
+        function addRemoveFormListener(formElement) {
+            formElement.querySelector('.remove-form').addEventListener('click', function() {
+                // Si le formulaire contient un champ DELETE caché (pour les éléments existants)
+                var deleteInput = formElement.querySelector('input[id$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.checked = true; // Coche la case DELETE pour marquer l'objet comme supprimé
+                    formElement.style.display = 'none'; // Cache le formulaire visuellement
+                } else {
+                    // Pour les nouveaux formulaires non encore enregistrés, il suffit de les supprimer du DOM
+                    formElement.remove();
+                    // Ajuster TOTAL_FORMS si nécessaire, mais souvent pas essentiel pour les éléments ajoutés puis retirés avant sauvegarde.
+                }
+            });
+        }
+
+        // Ajouter les écouteurs pour les formulaires existants au chargement de la page
+        document.querySelectorAll('.image-form .remove-form').forEach(button => {
+            addRemoveFormListener(button.closest('.image-form'));
+        });
+        document.querySelectorAll('.video-form .remove-form').forEach(button => {
+            addRemoveFormListener(button.closest('.video-form'));
+        });
+
+        // Hide remove button for the first (original) forms if they are the only ones
+        if (document.querySelectorAll('.image-form').length === 1) {
+            document.querySelector('.image-form .remove-form').style.display = 'none';
+        }
+        if (document.querySelectorAll('.video-form').length === 1) {
+            document.querySelector('.video-form .remove-form').style.display = 'none';
+        }
+    </script>
+{% endblock %}

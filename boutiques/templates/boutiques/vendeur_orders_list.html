@@ -1,0 +1,55 @@
+{# templates/boutiques/vendeur_orders_list.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Commandes Clients{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Commandes Clients</h1>
+    <p class="lead">Consultez et gérez les commandes passées pour vos produits.</p>
+
+    {% if seller_orders %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">ID Commande</th>
+                        <th scope="col">Client</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Statut</th>
+                        <th scope="col">Articles (pour vous)</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in seller_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user.username }}</td>
+                            <td>{{ order.created_at|date:"d M Y H:i" }}</td>
+                            <td><span class="badge bg-{{ order.get_status_badge_color }}">{{ order.get_status_display }}</span></td>
+                            <td>
+                                {# Affiche le nombre d'articles de CE vendeur dans la commande #}
+                                {% with order_items_for_seller=order.items.all|filter_by_seller:request.user %}
+                                    {{ order_items_for_seller|length }}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <a href="{% url 'seller_order_detail' order.id %}" class="btn btn-info btn-sm">Voir Détail</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            Aucune commande n'a encore été passée pour vos produits.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{# templates/boutiques/vendeur_order_detail.html #}
+{% extends 'boutiques/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Détail de la Commande #{{ order.id }} (Vendeur){% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include 'boutiques/messages.html' %}
+
+    <h1 class="mb-4">Détail de la Commande #{{ order.id }}</h1>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            Commande #{{ order.id }}
+            <span class="badge bg-{{ order.get_status_badge_color }}">{{ order.get_status_display }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5>Informations Générales</h5>
+                    <p><strong>Client:</strong> {{ order.user.username }}</p>
+                    <p><strong>Email Client:</strong> {{ order.user.email }}</p>
+                    <p><strong>Date de commande:</strong> {{ order.created_at|date:"d M Y H:i" }}</p>
+                    <p><strong>Statut Actuel:</strong> <span class="badge bg-{{ order.get_status_badge_color }}">{{ order.get_status_display }}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Adresse de Livraison du Client</h5>
+                    <p>{{ order.shipping_address_line1 }}</p>
+                    {% if order.shipping_address_line2 %}<p>{{ order.shipping_address_line2 }}</p>{% endif %}
+                    <p>{{ order.shipping_city }}, {{ order.shipping_postal_code }}</p>
+                    <p>{{ order.shipping_country }}</p>
+                </div>
+            </div>
+
+            <hr>
+            <h5>Articles de Votre Boutique dans cette Commande</h5>
+            <ul class="list-group mb-3">
+                {% for item in seller_order_items %} {# seller_order_items est déjà filtré par la vue #}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="my-0">{{ item.product_name }}</h6>
+                            <small class="text-muted">
+                                Quantité: {{ item.quantity }} | Prix à l'achat: {{ item.price_at_purchase|floatformat:2 }} F CFA
+                                {% if item.product.shop %}
+                                    <br>Boutique: <a href="{% url 'shop_detail' item.product.shop.slug %}">{{ item.product.shop.name }}</a>
+                                {% endif %}
+                            </small>
+                        </div>
+                        <span class="text-muted">{{ item.subtotal|floatformat:2 }} F CFA</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="text-end fw-bold">Montant Total de Votre Vente dans cette Commande:
+                {{ seller_order_items|total_price_for_seller|floatformat:2 }} F CFA</p>
+
+            <hr>
+            <h5>Mettre à jour le Statut et le Suivi</h5>
+            {% if form.instance.status in 'delivered,completed,cancelled,refunded' %}
+                <div class="alert alert-warning text-center" role="alert">
+                    Cette commande a un statut final ({{ order.get_status_display }}). Les modifications ne sont plus possibles.
+                </div>
+            {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-success mt-3">Mettre à jour la commande</button>
+                </form>
+            {% endif %}
+
+            <a href="{% url 'seller_orders_list' %}" class="btn btn-secondary mt-4">Retour aux commandes</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
