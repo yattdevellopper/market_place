@@ -14,7 +14,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-load_dotenv() # charge les variables du fichier .env
+# --- CORRECTION 1: Chargement conditionnel de .env ---
+# Charge les variables du fichier .env UNIQUEMENT si nous ne sommes pas en production.
+# Render et d'autres plateformes de déploiement géreront leurs propres variables d'environnement.
+if os.environ.get('DJANGO_ENV') != 'production':
+    load_dotenv()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,17 +29,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Use an environment variable for SECRET_KEY in production!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-1-hami7&3^wjwcio&*za^i86vp2h^9qo)gx_0+*33!)mdmoc@1')
-# For development, you can use the hardcoded string above.
-# For production, set DJANGO_SECRET_KEY as an environment variable (e.g., in your server config).
+# --- CORRECTION 2: SECRET_KEY sans valeur par défaut en production ---
+# EN PRODUCTION, la SECRET_KEY DOIT absolument venir d'une variable d'environnement
+# et ne jamais avoir de valeur par défaut en dur dans le code.
+# Le 'or' avec la valeur par défaut est utile pour le développement si .env n'est pas chargé,
+# mais pour la production, supprimez cette valeur par défaut ou assurez-vous qu'elle est bien passée par l'environnement.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') # Idéalement, pas de valeur par défaut ici.
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # Set to False in production
+# --- CORRECTION 3: DEBUG via variable d'environnement ---
+# Mettez DEBUG à True si la variable d'environnement 'DEBUG_VALUE' est 'True'.
+# Sinon, elle sera False (important pour la production).
+DEBUG = os.environ.get('DEBUG_VALUE', 'False') == 'True'
+
 
 # Allowed hosts for your Django application
-# In production, this should be your domain name (e.g., 'www.yourmarketplace.com', 'yourmarketplace.com')
-ALLOWED_HOSTS = ['*'] # Change this to your domain(s) in production, e.g., ['127.0.0.1', 'localhost', 'yourdomain.com']
+# --- CORRECTION 4: ALLOWED_HOSTS dynamique pour production/dev ---
+# En production, cette liste devrait inclure les noms de domaine de votre site (ex: 'www.yourmarketplace.com', 'yourmarketplace.com').
+# Render ajoutera automatiquement son sous-domaine.
+# Pour le développement, on autorise '127.0.0.1' et 'localhost'.
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -52,10 +65,18 @@ INSTALLED_APPS = [
     'registration',
     'crispy_forms',
     'crispy_bootstrap5',
+    # --- AJOUT OPTIONNEL 1: WhiteNoise pour servir les statics en production ---
+    # Si vous voulez que Gunicorn serve les fichiers statiques de Django de manière optimisée.
+    # N'oubliez pas de l'installer: pip install whitenoise
+    # et d'ajouter 'whitenoise.middleware.WhiteNoiseMiddleware' dans MIDDLEWARE.
+    # 'whitenoise.runserver_nostatic', # Utile pour le dev avec WhiteNoise
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # --- AJOUT OPTIONNEL 2: WhiteNoise middleware ---
+    # Si vous utilisez WhiteNoise, ajoutez-le ici, juste après SecurityMiddleware.
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -85,62 +106,54 @@ TEMPLATES = [
 WSGI_APPLICATION = 'marketplace_project.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+# Database - Configuration pour PostgreSQL
+# --- CORRECTION 5: Meilleure gestion des valeurs par défaut pour DB ---
+# Les valeurs par défaut ne devraient être utilisées que si elles sont "sûres" (par ex. pour le dev local).
+# Sur Render, les variables d'environnement seront toujours définies.
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Changed to PostgreSQL
-        'NAME': os.environ.get('DB_NAME', 'mon_marketplace_db'), # Use environment variable for name
-        'USER': os.environ.get('DB_USER', 'mon_marketplace_user'), # Use environment variable for user
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'votre_mot_de_passe_fort'), # Use environment variable for password
-        'HOST': os.environ.get('DB_HOST', 'localhost'), # Use environment variable for host
-        'PORT': os.environ.get('DB_PORT', '5432'), # Use environment variable for port
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
+# --- AJOUT OPTIONNEL 3: Utiliser DATABASE_URL pour Render ---
+# Render peut fournir une seule variable DATABASE_URL pour la connexion.
+# Si vous l'utilisez, une bibliothèque comme dj-database-url simplifie les choses:
+# pip install dj-database-url
+# import dj_database_url
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
+#         conn_max_age=600 # Optionnel: Gérer les connexions persistantes
+#     )
+# }
+# Avec dj-database-url, vous n'auriez pas besoin de DB_NAME, DB_USER, etc. séparées.
 
 
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+# ... (laissez inchangé) ...
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# Crispy Forms configuration
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = 'fr-fr' # Changed to French for Mali context
-
-TIME_ZONE = 'Africa/Bamako' # Changed to Bamako timezone for Mali context
-
+LANGUAGE_CODE = 'fr-fr'
+TIME_ZONE = 'Africa/Bamako'
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
-# Define STATIC_ROOT for collecting static files in production
+# Ce répertoire stockera tous les fichiers statiques de votre projet pour la production.
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# --- AJOUT OPTIONNEL 4: WhiteNoise pour le stockage des statiques en prod ---
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Configuration pour les fichiers médias (images, vidéos téléchargées)
@@ -148,11 +161,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login/Logout Redirect URLs
-LOGIN_REDIRECT_URL = '/boutiques/vendeur/dashboard/' # A good default for a marketplace seller
-LOGOUT_REDIRECT_URL = '/' # Redirect to homepage after logout
+LOGIN_REDIRECT_URL = '/boutiques/vendeur/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
 
